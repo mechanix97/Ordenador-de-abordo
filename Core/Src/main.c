@@ -19,14 +19,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "fonts.h"
-#include "ssd1306.h"
-#include "sh1106.h"
-#include "test.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,7 +45,7 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-int vueltas = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,59 +101,18 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  
-  /*SSD1306_Init();
-
-    SSD1306_GotoXY(0,0);
-    SSD1306_Puts("Elegi una", &Font_11x18, 1);
-    SSD1306_GotoXY(10,20);
-    SSD1306_Puts("Cajita", &Font_11x18, 1);
-    SSD1306_GotoXY(20,40);
-    SSD1306_Puts("mejor", &Font_11x18, 1);
-    SSD1306_UpdateScreen();
-
-  SH1106_Init();
-    SH1106_GotoXY(0,0);
-    SH1106_Puts("Rocio", &Font_11x18, 1);
-    SH1106_GotoXY(10,20);
-    SH1106_Puts("Beatriz", &Font_11x18, 1);
-    SH1106_GotoXY(20,40);
-    SH1106_Puts("Cardenas", &Font_11x18, 1);
-    SH1106_UpdateScreen();*/
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  SSD1306_Init();
-	SH1106_Init();
-  char cadena[10];
+  
+  setup();
+  
   while (1) {
-    /* USER CODE END WHILE */
-    sprintf(cadena, "%d", vueltas);
-    //vueltas = 0;
-
-    SH1106_GotoXY(0,0);
-    SSD1306_GotoXY(0,0);
-
-    SH1106_Puts(cadena, &Font_11x18, 1);
-    SSD1306_Puts(cadena, &Font_11x18, 1);
-
-    SSD1306_UpdateScreen();
-    SH1106_UpdateScreen();
-
-
-    //HAL_Delay(1000);
-    /* USER CODE BEGIN 3 */
+    loop();      
   }
   /* USER CODE END 3 */
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-    if(GPIO_Pin == GPIO_PIN_8) // If The INT Source Is EXTI Line9 (A9 Pin)
-    {
-      vueltas++;
-    }
 }
 
 
