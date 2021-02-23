@@ -50,6 +50,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -58,6 +60,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define button_Pin GPIO_PIN_0
+#define button_GPIO_Port GPIOA
+#define button_EXTI_IRQn EXTI0_IRQn
 #define speedometer_Pin GPIO_PIN_8
 #define speedometer_GPIO_Port GPIOA
 #define speedometer_EXTI_IRQn EXTI9_5_IRQn
