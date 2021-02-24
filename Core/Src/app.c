@@ -16,7 +16,7 @@ void setup(){
 }
 
 void loop(){
-    //HAL_Delay(100);
+    //HAL_Delay(100); 
     char cadena[10];
 
     sprintf(cadena, "%02d ", vueltas);
@@ -25,8 +25,13 @@ void loop(){
     SH1106_GotoXY(0,0);
     SSD1306_GotoXY(0,0);
 
-    SH1106_Puts(cadena, &Font_11x18, 1);
-    SSD1306_Puts(cadena, &Font_11x18, 1);
+    SH1106_Puts("Audio de", &Font_11x18, 1);
+    
+    SSD1306_Puts("Audio de", &Font_11x18, 1);
+    SSD1306_GotoXY(0,20);
+    SSD1306_Puts("Francisca", &Font_11x18, 1);
+    SSD1306_GotoXY(0,40);
+    SSD1306_Puts("(4:50)", &Font_11x18, 1);
 
     SSD1306_UpdateScreen();
     SH1106_UpdateScreen();   
