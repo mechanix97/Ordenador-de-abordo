@@ -3,8 +3,11 @@
 int vueltas = 5;
 int pwm1[] = {0, 10, 16, 22, 30, 45, 60, 80, 100, 140, 200};
 int pwm2[] = {0, 10, 16, 22, 30, 45, 60, 80, 100, 140, 200};
-
+uint8_t UART3_rxBuffer[200] = {0};
+int i = 0;
 extern TIM_HandleTypeDef htim2;
+extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart1;
 
 void setup(){
     SSD1306_Init();
@@ -13,29 +16,44 @@ void setup(){
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
     turnOnLedPWM1(5);
     turnOnLedPWM2(5);
+    //HAL_UART_Receive (&huart1, UART3_rxBuffer, 200, 5000);
+    
+    char xd[]="Hola Mundo \r\n";
+    HAL_UART_Transmit(&huart1, (uint8_t *) xd, 13, 10);
+    HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
 }
 
 void loop(){
-    //HAL_Delay(100); 
-    char cadena[10];
+    //HAL_Delay(1000);
 
-    sprintf(cadena, "%02d ", vueltas);
+    //debugPrintln(&huart1, UART3_rxBuffer); 
+    //char cadena[10];
+
+    //sprintf(cadena, "%02d ", UART3_rxBuffer+6);
     //vueltas = 0;
 
-    SH1106_GotoXY(0,0);
+   /* SH1106_GotoXY(0,0);
     SSD1306_GotoXY(0,0);
-
-    SH1106_Puts("Audio de", &Font_11x18, 1);
     
-    SSD1306_Puts("Audio de", &Font_11x18, 1);
+    SSD1306_Puts(UART3_rxBuffer+i, &Font_11x18, 1);
     SSD1306_GotoXY(0,20);
-    SSD1306_Puts("Francisca", &Font_11x18, 1);
+    SSD1306_Puts("RPM", &Font_11x18, 1);
     SSD1306_GotoXY(0,40);
-    SSD1306_Puts("(4:50)", &Font_11x18, 1);
+    SSD1306_Puts("0", &Font_11x18, 1);
 
     SSD1306_UpdateScreen();
     SH1106_UpdateScreen();   
-    
+    i++;
+    if( i == 100){
+        i = 0;
+    }*/
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+    HAL_UART_Transmit(&huart1, (uint8_t *) UART3_rxBuffer, 200, 10);
+	char newline[2] = "\r\n";
+	HAL_UART_Transmit(&huart1, (uint8_t *) newline, 2, 10);
+    HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
 }
 
 void turnOnLedPWM1(uint16_t leds){
@@ -59,5 +77,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
         vueltas++;
         vueltas = vueltas % 11;
     }
+}
+
+void debugPrint(UART_HandleTypeDef *huart, char _out[]){
+	HAL_UART_Transmit(huart, (uint8_t *) _out, strlen(_out), 10);
+} 
+
+void debugPrintln(UART_HandleTypeDef *huart, char _out[]){
+	HAL_UART_Transmit(huart, (uint8_t *) _out, strlen(_out), 10);
+	char newline[2] = "\r\n";
+	HAL_UART_Transmit(huart, (uint8_t *) newline, 2, 10);
 }
 
