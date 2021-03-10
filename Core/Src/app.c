@@ -18,35 +18,42 @@ void setup(){
     turnOnLedPWM2(5);
     //HAL_UART_Receive (&huart1, UART3_rxBuffer, 200, 5000);
     
-    char xd[]="Hola Mundo \r\n";
-    HAL_UART_Transmit(&huart1, (uint8_t *) xd, 13, 10);
-    HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
+    //char xd[]="Hola Mundo \r\n";
+    //HAL_UART_Transmit(&huart1, (uint8_t *) xd, 13, 10);
+    //HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
 }
 
+
 void loop(){
-    //HAL_Delay(1000);
+    HAL_Delay(1000);
 
-    //debugPrintln(&huart1, UART3_rxBuffer); 
-    //char cadena[10];
-
-    //sprintf(cadena, "%02d ", UART3_rxBuffer+6);
-    //vueltas = 0;
-
-   /* SH1106_GotoXY(0,0);
-    SSD1306_GotoXY(0,0);
     
-    SSD1306_Puts(UART3_rxBuffer+i, &Font_11x18, 1);
-    SSD1306_GotoXY(0,20);
+    char cadena[10];
+
+    sprintf(cadena, "%05d ", i*60);
+    debugPrintln(&huart1, cadena); 
+    i = 0;
+
+/*    SH1106_GotoXY(0,0);
+    SSD1306_GotoXY(0,0);
+    SSD1306_Puts(cadena, &Font_11x18, 1);
+    SH1106_Puts(cadena, &Font_11x18, 1);
+    
+
+    turnOnLedPWM1(i);
+    turnOnLedPWM2(i);
+
     SSD1306_Puts("RPM", &Font_11x18, 1);
     SSD1306_GotoXY(0,40);
     SSD1306_Puts("0", &Font_11x18, 1);
 
     SSD1306_UpdateScreen();
-    SH1106_UpdateScreen();   
+    SH1106_UpdateScreen(); 
     i++;
-    if( i == 100){
+    if( i == 11){
         i = 0;
-    }*/
+    }
+*/
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
@@ -70,9 +77,9 @@ void turnOnLedPWM2(uint16_t leds){
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, pwm2[leds]);
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+void HAL_GPIO_EXTI_Cuback(uint16_t GPIO_Pin){
     if (GPIO_Pin == GPIO_PIN_8) {
-        vueltas++;
+        i++;
     } else if (GPIO_Pin == GPIO_PIN_0) {
         vueltas++;
         vueltas = vueltas % 11;
