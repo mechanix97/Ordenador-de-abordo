@@ -1,21 +1,31 @@
 #include "app.h"
 
-int vueltas = 5;
 int pwm1[] = {0, 10, 16, 22, 30, 45, 60, 80, 100, 140, 200};
 int pwm2[] = {0, 10, 16, 22, 30, 45, 60, 80, 100, 140, 200};
+
 uint8_t UART3_rxBuffer[200] = {0};
+
+int vueltas = 5;
 int i = 0;
+
+uint16_t AD_RES = 0;
+
+
 extern TIM_HandleTypeDef htim2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart1;
+extern ADC_HandleTypeDef hadc1;
+extern DMA_HandleTypeDef hdma_adc1;
 
 void setup(){
     SSD1306_Init();
 	SH1106_Init();
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);   
     turnOnLedPWM1(5);
     turnOnLedPWM2(5);
+    HAL_ADCEx_Calibration_Start(&hadc1);
+
     //HAL_UART_Receive (&huart1, UART3_rxBuffer, 200, 5000);
     
     //char xd[]="Hola Mundo \r\n";
@@ -25,35 +35,40 @@ void setup(){
 
 
 void loop(){
-    HAL_Delay(1000);
+//    HAL_Delay(1000);
 
-    
+    HAL_ADC_Start_DMA(&hadc1,(uint32_t *) &AD_RES, 1);
+   
     char cadena[10];
 
-    sprintf(cadena, "%05d ", i*60);
-    debugPrintln(&huart1, cadena); 
-    i = 0;
+    sprintf(cadena, "%05d ", AD_RES);
+    //debugPrintln(&huart1, cadena); 
+//    i = 0;
 
-/*    SH1106_GotoXY(0,0);
+    SH1106_GotoXY(0,0);
     SSD1306_GotoXY(0,0);
     SSD1306_Puts(cadena, &Font_11x18, 1);
     SH1106_Puts(cadena, &Font_11x18, 1);
     
 
-    turnOnLedPWM1(i);
-    turnOnLedPWM2(i);
-
-    SSD1306_Puts("RPM", &Font_11x18, 1);
-    SSD1306_GotoXY(0,40);
-    SSD1306_Puts("0", &Font_11x18, 1);
+//    turnOnLedPWM1(i);
+    //turnOnLedPWM2(i);
 
     SSD1306_UpdateScreen();
     SH1106_UpdateScreen(); 
-    i++;
+    /*i++;
     if( i == 11){
         i = 0;
-    }
-*/
+    }*/
+
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+    // Conversion Complete & DMA Transfer Complete As Well
+    // So The AD_RES Is Now Updated & Let's Move IT To The PWM CCR1
+    // Update The PWM Duty Cycle With Latest ADC Conversion Result
+    TIM2->CCR1 = (AD_RES<<4);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
