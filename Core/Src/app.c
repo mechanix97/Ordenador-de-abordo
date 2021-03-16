@@ -10,6 +10,10 @@ int i = 0;
 
 uint16_t AD_RES = 0;
 
+refresh_function screen1_refresh_fp = & screen1_refresh_01;
+refresh_function screen2_refresh_fp = & screen1_refresh_01;
+
+char cadena[10];
 
 extern TIM_HandleTypeDef htim2;
 extern UART_HandleTypeDef huart3;
@@ -35,19 +39,22 @@ void setup(){
 
 
 void loop(){
-//    HAL_Delay(1000);
+    HAL_Delay(100);
 
-    HAL_ADC_Start_DMA(&hadc1,(uint32_t *) &AD_RES, 1);
+    //HAL_ADC_Start_DMA(&hadc1,(uint32_t *) &AD_RES, 1);
    
-    char cadena[10];
 
-    sprintf(cadena, "%05d ", AD_RES);
+
+    sprintf(cadena, "%05d ", i*60);
     //debugPrintln(&huart1, cadena); 
-//    i = 0;
+    i = 0;
 
-    SH1106_GotoXY(0,0);
+    screen1_refresh_fp();
+    screen2_refresh_fp();
+
+   
     SSD1306_GotoXY(0,0);
-    SSD1306_Puts(cadena, &Font_11x18, 1);
+   
     SH1106_Puts(cadena, &Font_11x18, 1);
     
 
@@ -62,6 +69,14 @@ void loop(){
     }*/
 
 }
+
+/* REFRESH_FUNCTIONS */
+void screen1_refresh_01 () {
+    static char srceen1_refresh_01_string[100] = "\0";
+    SH1106_GotoXY(0,0);
+    SSD1306_Puts(cadena, &Font_11x18, 1);
+}
+
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
@@ -98,7 +113,7 @@ void HAL_GPIO_EXTI_Cuback(uint16_t GPIO_Pin){
     } else if (GPIO_Pin == GPIO_PIN_0) {
         vueltas++;
         vueltas = vueltas % 11;
-    }
+    } 
 }
 
 void debugPrint(UART_HandleTypeDef *huart, char _out[]){

@@ -8,6 +8,12 @@
 #include "sh1106.h"
 #include "test.h"
 
+typedef void (*refresh_function)();
+
+/* REFRESH FUNTIONS */
+void screen1_refresh_01 ();
+
+
 void setup();
 void loop();
 
