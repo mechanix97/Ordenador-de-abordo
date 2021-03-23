@@ -281,7 +281,7 @@ void SH1106_DrawPixel(uint16_t x, uint16_t y, SH1106_COLOR_t color) {
 
 void SH1106_GotoXY(uint16_t x, uint16_t y) {
 	/* Set write pointers */
-	SH1106.CurrentX = x;
+	SH1106.CurrentX = x + 1;
 	SH1106.CurrentY = y;
 }
 

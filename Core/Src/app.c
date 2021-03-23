@@ -1,73 +1,157 @@
 #include "app.h"
 
-int pwm1[] = {0, 10, 16, 22, 30, 45, 60, 80, 100, 140, 200};
-int pwm2[] = {0, 10, 16, 22, 30, 45, 60, 80, 100, 140, 200};
+int pwm1[] = {0, 7, 10, 16, 30, 42, 60, 80, 100, 140, 200};
+int pwm2[] = {0, 7, 10, 16, 30, 45, 60, 80, 100, 140, 200};
 
 uint8_t UART3_rxBuffer[200] = {0};
 
-int vueltas = 5;
+int vueltas = 0;
 int i = 0;
 
-uint16_t AD_RES = 0;
+uint32_t day = 0;
+uint32_t month = 0;
+uint32_t year = 0;
+
+uint32_t hour = 0;
+uint32_t minute = 0;
+
+uint32_t AD_RES = 0;
+uint32_t AD_RES2 = 0;
+
+uint32_t lat_int = 0;
+uint32_t lat_dec = 0;
+uint32_t lon_int = 0;
+uint32_t lon_dec = 0;
 
 refresh_function screen1_refresh_fp = & screen1_refresh_01;
 refresh_function screen2_refresh_fp = & screen1_refresh_01;
 
-char cadena[10];
+char cadena[20];
 
 extern TIM_HandleTypeDef htim2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart1;
 extern ADC_HandleTypeDef hadc1;
+extern ADC_HandleTypeDef hadc2;
 extern DMA_HandleTypeDef hdma_adc1;
 
 void setup(){
-    SSD1306_Init();
-	SH1106_Init();
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);   
-    turnOnLedPWM1(5);
-    turnOnLedPWM2(5);
+    
     HAL_ADCEx_Calibration_Start(&hadc1);
+    HAL_ADCEx_Calibration_Start(&hadc2);
+
+    HAL_Delay(500);
+    SSD1306_Init();
+	SH1106_Init();
+    
+//    welcome();
+
+    
 
     //HAL_UART_Receive (&huart1, UART3_rxBuffer, 200, 5000);
     
     //char xd[]="Hola Mundo \r\n";
     //HAL_UART_Transmit(&huart1, (uint8_t *) xd, 13, 10);
-    //HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
+    HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
 }
 
 
 void loop(){
-    HAL_Delay(100);
-
-    //HAL_ADC_Start_DMA(&hadc1,(uint32_t *) &AD_RES, 1);
-   
-
-
-    sprintf(cadena, "%05d ", i*60);
     //debugPrintln(&huart1, cadena); 
-    i = 0;
 
-    screen1_refresh_fp();
-    screen2_refresh_fp();
+    //screen1_refresh_fp();
+    //screen2_refresh_fp();
+    
+//    HAL_Delay(100);
+    
+    HAL_ADC_Start(&hadc2);    
+    HAL_ADC_PollForConversion(&hadc2, 1); 
+    AD_RES2 = HAL_ADC_GetValue(&hadc2);
 
-   
-    SSD1306_GotoXY(0,0);
-   
+   HAL_ADC_Start_DMA(&hadc1, &AD_RES, 1); 
+
+    sprintf(cadena, "VEL: %05d ", i);
+    SH1106_GotoXY(0,0);
     SH1106_Puts(cadena, &Font_11x18, 1);
     
+    sprintf(cadena, "RPM: %05d ", AD_RES);   
+    SH1106_GotoXY(0,20);
+    SH1106_Puts(cadena, &Font_11x18, 1);
+    
+    sprintf(cadena, "GAS: %05d ", AD_RES2);   
+    SH1106_GotoXY(0,40);
+    SH1106_Puts(cadena, &Font_11x18, 1);
 
-//    turnOnLedPWM1(i);
-    //turnOnLedPWM2(i);
+    sprintf(cadena, "BUT: %02d ", vueltas);
+    SSD1306_GotoXY(0,0);    
+    SSD1306_Puts(cadena, &Font_11x18, 1);
+
+    sprintf(cadena, "LAT: %02d.%06d", lat_int, lat_dec);
+    SSD1306_GotoXY(0,19);    
+    SSD1306_Puts(cadena, &Font_7x10, 1);
+
+    sprintf(cadena, "LON: %02d.%06d", lon_int, lon_dec);
+    SSD1306_GotoXY(0,30);    
+    SSD1306_Puts(cadena, &Font_7x10, 1);
+
+    sprintf(cadena, "DAT: %02d/%02d/%04d", day, month, year);
+    SSD1306_GotoXY(0,41);    
+    SSD1306_Puts(cadena, &Font_7x10, 1);
+
+    sprintf(cadena, "TIME: %02d:%02d", hour, minute);
+    SSD1306_GotoXY(0,52);    
+    SSD1306_Puts(cadena, &Font_7x10, 1);
+
+    turnOnLedPWM1(vueltas);
+    turnOnLedPWM2(vueltas);
 
     SSD1306_UpdateScreen();
     SH1106_UpdateScreen(); 
-    /*i++;
-    if( i == 11){
-        i = 0;
-    }*/
+}
 
+void welcome() {
+    for(int j = 0; j<=10; j++) {
+        turnOnLedPWM1(j);
+        turnOnLedPWM2(j);
+        HAL_Delay(100);
+    }
+
+    char zanella[] = "Zanella     ";
+    for(int j = 130; j >= 20; j-=5) {
+        SSD1306_GotoXY(j, 10);
+        SH1106_GotoXY(j, 10);
+        
+        SSD1306_Puts(zanella, &Font_11x18, 1);
+        SH1106_Puts(zanella, &Font_11x18, 1);
+        
+        SSD1306_UpdateScreen();
+        SH1106_UpdateScreen(); 
+    }
+
+     char rx[] = "RX 150       ";
+    for(int j = 130; j >= 30; j-=5) {
+        SSD1306_GotoXY(j,35);
+        SH1106_GotoXY(j,35);
+        
+
+        SSD1306_Puts(rx, &Font_11x18, 1);
+        SH1106_Puts(rx, &Font_11x18, 1);
+        
+        SSD1306_UpdateScreen();
+        SH1106_UpdateScreen(); 
+    }
+
+    for(int j = 10; j >= 0; j--) {
+        turnOnLedPWM1(j);
+        turnOnLedPWM2(j);
+        HAL_Delay(100);
+    }
+
+    HAL_Delay(3000); 
+    SSD1306_Clear();
+    SH1106_Clear();
 }
 
 /* REFRESH_FUNCTIONS */
@@ -78,12 +162,8 @@ void screen1_refresh_01 () {
 }
 
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     // Conversion Complete & DMA Transfer Complete As Well
-    // So The AD_RES Is Now Updated & Let's Move IT To The PWM CCR1
-    // Update The PWM Duty Cycle With Latest ADC Conversion Result
-    TIM2->CCR1 = (AD_RES<<4);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
@@ -97,23 +177,25 @@ void turnOnLedPWM1(uint16_t leds){
     if ( leds > 10 ){
         leds = 10;
     }
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, pwm1[leds]);
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, pwm1[leds]);
 }
 
 void turnOnLedPWM2(uint16_t leds){
     if ( leds > 10 ){
         leds = 10;
     }
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, pwm2[leds]);
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, pwm2[leds]);
 }
 
-void HAL_GPIO_EXTI_Cuback(uint16_t GPIO_Pin){
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
     if (GPIO_Pin == GPIO_PIN_8) {
         i++;
     } else if (GPIO_Pin == GPIO_PIN_0) {
         vueltas++;
         vueltas = vueltas % 11;
-    } 
+    } else {
+        vueltas = GPIO_Pin;
+    }
 }
 
 void debugPrint(UART_HandleTypeDef *huart, char _out[]){

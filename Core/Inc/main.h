@@ -60,11 +60,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define button_Pin GPIO_PIN_0
-#define button_GPIO_Port GPIOA
-#define button_EXTI_IRQn EXTI0_IRQn
-#define RPM_Pin GPIO_PIN_15
-#define RPM_GPIO_Port GPIOB
+#define Button_Pin GPIO_PIN_0
+#define Button_GPIO_Port GPIOA
+#define Button_EXTI_IRQn EXTI0_IRQn
 #define speedometer_Pin GPIO_PIN_8
 #define speedometer_GPIO_Port GPIOA
 #define speedometer_EXTI_IRQn EXTI9_5_IRQn
