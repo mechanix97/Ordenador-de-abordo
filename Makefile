@@ -40,8 +40,8 @@ Core/Src/main.c \
 Core/Src/fonts.c \
 Core/Src/ssd1306.c \
 Core/Src/sh1106.c \
-Core/Src/test.c \
 Core/Src/app.c \
+Core/Src/gps.c \
 Core/Src/stm32f1xx_it.c \
 Core/Src/stm32f1xx_hal_msp.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c \

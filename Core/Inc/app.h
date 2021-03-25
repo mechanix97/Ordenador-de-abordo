@@ -2,11 +2,12 @@
 #define _APP_H_
 
 #include <stdio.h>
+#include <string.h>
 
 #include "fonts.h"
 #include "ssd1306.h"
 #include "sh1106.h"
-#include "test.h"
+#include "gps.h"
 
 typedef void (*refresh_function)();
 

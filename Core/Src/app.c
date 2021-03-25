@@ -3,17 +3,12 @@
 int pwm1[] = {0, 7, 10, 16, 30, 42, 60, 80, 100, 140, 200};
 int pwm2[] = {0, 7, 10, 16, 30, 45, 60, 80, 100, 140, 200};
 
-uint8_t UART3_rxBuffer[200] = {0};
+char UART3_rxBuffer[200] = {0};
 
 int vueltas = 0;
 int i = 0;
 
-uint32_t day = 0;
-uint32_t month = 0;
-uint32_t year = 0;
-
-uint32_t hour = 0;
-uint32_t minute = 0;
+gps_t gps = {0};
 
 uint32_t AD_RES = 0;
 uint32_t AD_RES2 = 0;
@@ -52,8 +47,8 @@ void setup(){
 
     //HAL_UART_Receive (&huart1, UART3_rxBuffer, 200, 5000);
     
-    //char xd[]="Hola Mundo \r\n";
-    //HAL_UART_Transmit(&huart1, (uint8_t *) xd, 13, 10);
+    char xd[]="Hola Mundo \r\n";
+    HAL_UART_Transmit(&huart1, (uint8_t *) xd, 13, 10);
     HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
 }
 
@@ -66,11 +61,12 @@ void loop(){
     
 //    HAL_Delay(100);
     
+
     HAL_ADC_Start(&hadc2);    
     HAL_ADC_PollForConversion(&hadc2, 1); 
     AD_RES2 = HAL_ADC_GetValue(&hadc2);
 
-   HAL_ADC_Start_DMA(&hadc1, &AD_RES, 1); 
+    HAL_ADC_Start_DMA(&hadc1, &AD_RES, 1); 
 
     sprintf(cadena, "VEL: %05d ", i);
     SH1106_GotoXY(0,0);
@@ -88,19 +84,19 @@ void loop(){
     SSD1306_GotoXY(0,0);    
     SSD1306_Puts(cadena, &Font_11x18, 1);
 
-    sprintf(cadena, "LAT: %02d.%06d", lat_int, lat_dec);
+    sprintf(cadena, "LAT: %02d.%05d %c", gps.lat_int, gps.lat_dec, gps.lat);
     SSD1306_GotoXY(0,19);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
-    sprintf(cadena, "LON: %02d.%06d", lon_int, lon_dec);
+    sprintf(cadena, "LON: %02d.%05d %c", gps.lon_int, gps.lon_dec, gps.lon);
     SSD1306_GotoXY(0,30);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
-    sprintf(cadena, "DAT: %02d/%02d/%04d", day, month, year);
+    sprintf(cadena, "DAT: %02d/%02d/%04d", gps.date.day, gps.date.month, gps.date.year);
     SSD1306_GotoXY(0,41);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
-    sprintf(cadena, "TIME: %02d:%02d", hour, minute);
+    sprintf(cadena, "TIME: %02d:%02d", gps.date.hour, gps.date.minute);
     SSD1306_GotoXY(0,52);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
@@ -167,9 +163,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-    HAL_UART_Transmit(&huart1, (uint8_t *) UART3_rxBuffer, 200, 10);
-	char newline[2] = "\r\n";
-	HAL_UART_Transmit(&huart1, (uint8_t *) newline, 2, 10);
+    gps_t mygps = parseGPSRead(UART3_rxBuffer);
+    if( isValid(mygps) ) {
+        gps = mygps;
+    }    
     HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
 }
 
