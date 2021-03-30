@@ -7,76 +7,71 @@ char UART3_rxBuffer[200] = {0};
 
 int vueltas = 0;
 int i = 0;
+uint32_t tick = 0;
+uint32_t tick_anterior = 0;
+uint32_t tick_actual = 0;
 
-gps_t gps = {0};
+gps_t gps = {{0,0,0,0,0,0}, 'U', 0,0,'U',0,0,'U'};
 
-uint32_t AD_RES = 0;
-uint32_t AD_RES2 = 0;
-
-uint32_t lat_int = 0;
-uint32_t lat_dec = 0;
-uint32_t lon_int = 0;
-uint32_t lon_dec = 0;
+uint32_t RPM = 0;
+uint32_t GAS = 0;
 
 refresh_function screen1_refresh_fp = & screen1_refresh_01;
 refresh_function screen2_refresh_fp = & screen1_refresh_01;
 
-char cadena[20];
+char cadena[50] = {0};
 
 extern TIM_HandleTypeDef htim2;
+
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart1;
-extern ADC_HandleTypeDef hadc1;
-extern ADC_HandleTypeDef hadc2;
-extern DMA_HandleTypeDef hdma_adc1;
 
 void setup(){
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);   
     
-    HAL_ADCEx_Calibration_Start(&hadc1);
-    HAL_ADCEx_Calibration_Start(&hadc2);
+    RPM_init();
+    GAS_init();
 
     HAL_Delay(500);
+
     SSD1306_Init();
 	SH1106_Init();
     
 //    welcome();
-
     
-
-    //HAL_UART_Receive (&huart1, UART3_rxBuffer, 200, 5000);
-    
-    char xd[]="Hola Mundo \r\n";
-    HAL_UART_Transmit(&huart1, (uint8_t *) xd, 13, 10);
-    HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
+    HAL_UART_Receive_DMA (&huart3, (uint8_t*) UART3_rxBuffer, 200);
 }
 
 
 void loop(){
-    //debugPrintln(&huart1, cadena); 
-
     //screen1_refresh_fp();
     //screen2_refresh_fp();
     
 //    HAL_Delay(100);
+
     
 
-    HAL_ADC_Start(&hadc2);    
-    HAL_ADC_PollForConversion(&hadc2, 1); 
-    AD_RES2 = HAL_ADC_GetValue(&hadc2);
+    //HAL_ADC_Start_DMA(&hadc1, &AD_RES, 1); 
+    GAS = GAS_read();
+    RPM = RPM_read();
+    
 
-    HAL_ADC_Start_DMA(&hadc1, &AD_RES, 1); 
+    tick_actual = HAL_GetTick();
+    tick =  tick_actual - tick_anterior;
+    tick_anterior = tick_actual;
+    sprintf(cadena, "%02lu%02lu%02lu-%lu",  gps.date.hour, gps.date.minute, gps.date.second, tick);
+    debugPrintln(&huart1, cadena);
 
     sprintf(cadena, "VEL: %05d ", i);
     SH1106_GotoXY(0,0);
     SH1106_Puts(cadena, &Font_11x18, 1);
     
-    sprintf(cadena, "RPM: %05d ", AD_RES);   
+    sprintf(cadena, "RPM: %05lu ", RPM);   
     SH1106_GotoXY(0,20);
     SH1106_Puts(cadena, &Font_11x18, 1);
     
-    sprintf(cadena, "GAS: %05d ", AD_RES2);   
+    sprintf(cadena, "GAS: %05lu ", GAS);   
     SH1106_GotoXY(0,40);
     SH1106_Puts(cadena, &Font_11x18, 1);
 
@@ -84,24 +79,24 @@ void loop(){
     SSD1306_GotoXY(0,0);    
     SSD1306_Puts(cadena, &Font_11x18, 1);
 
-    sprintf(cadena, "LAT: %02d.%05d %c", gps.lat_int, gps.lat_dec, gps.lat);
+    sprintf(cadena, "LAT: %02lu.%05lu %c", gps.lat_int, gps.lat_dec, gps.lat);
     SSD1306_GotoXY(0,19);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
-    sprintf(cadena, "LON: %02d.%05d %c", gps.lon_int, gps.lon_dec, gps.lon);
+    sprintf(cadena, "LON: %02lu.%05lu %c", gps.lon_int, gps.lon_dec, gps.lon);
     SSD1306_GotoXY(0,30);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
-    sprintf(cadena, "DAT: %02d/%02d/%04d", gps.date.day, gps.date.month, gps.date.year);
+    sprintf(cadena, "DAT: %02u/%02u/%04u", gps.date.day, gps.date.month, gps.date.year);
     SSD1306_GotoXY(0,41);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
-    sprintf(cadena, "TIME: %02d:%02d", gps.date.hour, gps.date.minute);
+    sprintf(cadena, "TIME: %02u:%02u", gps.date.hour, gps.date.minute);
     SSD1306_GotoXY(0,52);    
     SSD1306_Puts(cadena, &Font_7x10, 1);
 
-    turnOnLedPWM1(vueltas);
-    turnOnLedPWM2(vueltas);
+    turnOnLedPWM1(0);
+    turnOnLedPWM2(0);
 
     SSD1306_UpdateScreen();
     SH1106_UpdateScreen(); 
@@ -157,17 +152,17 @@ void screen1_refresh_01 () {
     SSD1306_Puts(cadena, &Font_11x18, 1);
 }
 
-
+/*
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     // Conversion Complete & DMA Transfer Complete As Well
-}
+}*/
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
     gps_t mygps = parseGPSRead(UART3_rxBuffer);
     if( isValid(mygps) ) {
         gps = mygps;
     }    
-    HAL_UART_Receive_DMA (&huart3, UART3_rxBuffer, 200);
+    HAL_UART_Receive_DMA (&huart3, (uint8_t *)UART3_rxBuffer, 200);
 }
 
 void turnOnLedPWM1(uint16_t leds){

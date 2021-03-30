@@ -1,11 +1,10 @@
 #include "gps.h"
 
 gps_t parseGPSRead(char * str) {
-    gps_t gps = {{0,0,0,0,0,0}, 'N', 0,0,'N',0,0,'N'};
-    uint8_t * ptr;
-    if((ptr = (uint8_t *) strstr(str, NMEA_MESSAGE)) != NULL) {
+    gps_t gps = {{0,0,0,0,0,0}, 'U', 0,0,'U',0,0,'U'};
+    char * ptr;
+    if((ptr = strstr(str, NMEA_MESSAGE)) != NULL) {
         uint32_t hour_raw = atoi(ptr + 7);
-        
         if( hour_raw ){
             gps.date.hour = ((hour_raw / 10000) + 24 + GMT) %24;
             gps.date.minute = hour_raw /100 %100;
@@ -34,6 +33,10 @@ gps_t parseGPSRead(char * str) {
             gps.status = 'N';
         }
 
+        if( !gps.date.day || !gps.date.month || !gps.date.year ){
+            gps.status = 'N';
+        }
+
         uint32_t lat1 = atoi(ptr+19);
         uint32_t lat2 = atoi(ptr+24);
         
@@ -50,11 +53,7 @@ gps_t parseGPSRead(char * str) {
             gps.lon_int = lon1 /100;
             gps.lon_dec = (lon1%100*100000+lon2)/60;
             gps.lon = ptr[44];
-        }
-
-        
-
-        
+        }        
     }
     return gps;
 }

@@ -8,6 +8,8 @@
 #include "ssd1306.h"
 #include "sh1106.h"
 #include "gps.h"
+#include "rpm.h"
+#include "gas.h"
 
 typedef void (*refresh_function)();
 

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define GMT -3
 #define NMEA_MESSAGE "$GPRMC"
