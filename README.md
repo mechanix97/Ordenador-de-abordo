@@ -1,3 +1,7 @@
+# Ordenador de abordo de moto
+
+[![YouTube](http://i.ytimg.com/vi/SR3X2kFW1ZU/hqdefault.jpg)](https://www.youtube.com/watch?v=SR3X2kFW1ZU)
+
 ## Instalación en linux (Ubuntu)
 > sudo apt-get install build-essential
 
